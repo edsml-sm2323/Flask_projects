@@ -10,6 +10,7 @@ MySQL == 9.0
 
 pymysql
 
+```
 Flask_project1/
 ├── app.py                 # 主应用文件，Flask应用的入口
 ├── config.py              # 配置文件（如数据库配置、密钥等）
@@ -25,6 +26,7 @@ Flask_project1/
 ├── migrations/            # 数据库迁移文件夹（使用Flask-Migrate）
 ├── models.py              # 数据库模型定义文件
 └── README.md              # 项目说明文件
+```
 
 ## 项目配置
 
