@@ -200,7 +200,45 @@ def query_user():
 
 
 ### ORM实现表关系
-外键实现表的连接
+外键实现表的连接, 以现在的User和Article为例子
+
+```
+class User_ORM(db.Model):
+    # 表名和类名有什么区别
+    __tablename__ = "user"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+    articles = db.relationship("Article", back_populates="author")
+    
+
+class Article(db.Model):
+    __tablename__ = "articles"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.Text, nullable=False)
+
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = db.relationship("User_ORM", back_populates="articles")
+    
+
+@app.route("/article/add")
+def article_add():
+    article1 = Article(title="Flask学习大纲", text="Flaskxxxx")
+    article1.author = User_ORM.query.get(2)
+
+    article2 = Article(title="Django学习大纲", text="Django最全学习大纲")
+    article2.author = User_ORM.query.get(2)
+
+    # 添加到session中
+    db.session.add_all([article1, article2])
+    # 同步session中的数据到数据库中
+    db.session.commit()
+    return "文章添加成功！"
+    
+```
+
 
 ### 将ORM模型映射到数据库
 ```
@@ -209,6 +247,24 @@ with app.app_context():
     db.create_all()
 ```
 之前使用的方式, 当一个ORM对象中的特征发生改变时, 对应的数据库中的表不会发生改变, 所以要使flask-migrate
+
+在app.py中:
+```
+db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
+```
+
+在terminal中 (要记得到app.py存在的文件目录下)
+```
+flask db init #只需要运行一次
+
+flask db migrate
+
+flask db upgrade
+
+```
+
 
 
 

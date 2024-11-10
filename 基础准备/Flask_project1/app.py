@@ -17,7 +17,7 @@ DATABASE = "flask_project"
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}'
 
 db = SQLAlchemy(app)
-
+migrate = Migrate(app, db)
 # # 测试数据库是否连接：
 # with app.app_context():
 #     with db.engine.connect() as conn:
@@ -31,6 +31,8 @@ class User_ORM(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
+
+    articles = db.relationship("Article", back_populates="author")
 # 之后将这个表映射到数据库中
 with app.app_context():
     db.create_all()
@@ -74,7 +76,33 @@ def delete_user():
     db.session.commit()
     return "数据删除成功"
 
+# 创建一个Article的ORM模型
+class Article(db.Model):
+    __tablename__ = "articles"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.Text, nullable=False)
 
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    author = db.relationship("User_ORM", back_populates="articles")
+
+with app.app_context():
+    db.create_all()
+
+# 添加两篇文章对应作者
+@app.route("/article/add")
+def article_add():
+    article1 = Article(title="Flask学习大纲", text="Flaskxxxx")
+    article1.author = User_ORM.query.get(2)
+
+    article2 = Article(title="Django学习大纲", text="Django最全学习大纲")
+    article2.author = User_ORM.query.get(2)
+
+    # 添加到session中
+    db.session.add_all([article1, article2])
+    # 同步session中的数据到数据库中
+    db.session.commit()
+    return "文章添加成功！"
 
 # 创建一个User对象
 class User:
