@@ -35,6 +35,47 @@ class User_ORM(db.Model):
 with app.app_context():
     db.create_all()
 
+@app.route('/user/add')
+def add_user():
+    user1 = User_ORM(username="msy", password="msyhs233")
+
+    # 向数据库中添加一个信息
+    db.session.add(user1)
+    db.session.commit()
+
+    return "对象创建成功"
+
+@app.route('/user/query')
+def query_user():
+    # 有两种查询方式
+    # get: 根据primary key进行查找
+    # user = User_ORM.query.get(1)
+    # print(user.username)
+    # filter:
+    # 返回的是QuerySet对象
+    users = User_ORM.query.filter_by(username="msy")
+    for user in users:
+        print(user.username)
+
+    return "数据查找成功"
+
+@app.route('/user/update')
+def update_user():
+    user = User_ORM.query.filter_by(username="msy")[0]
+    user.password = "222222"
+    db.session.commit()
+
+    return "数据修改成功"
+
+@app.route('/user/delete')
+def delete_user():
+    user = User_ORM.query.get(1)
+    db.session.delete(user)
+    db.session.commit()
+    return "数据删除成功"
+
+
+
 # 创建一个User对象
 class User:
     def __init__(self, username, email):

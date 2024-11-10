@@ -92,25 +92,123 @@ def filter_demo():
 ### 加载静态文件
 有三种静态文件
 
-图片: <img> </img>
+图片, css文件, Javascript文件
 
-css文件: <link> </link>
-
-Javascript文件: <script> </script>
+```
+<img> </img>
+<link> </link>
+<script> </script>
+```
 
 
 ## 数据库连接
+pymysql: 链接数据库
 ORM模型：对象关系映射 不用SQL语句 一个ORM模型与数据库中的一张表对应
 
+### 建立与数据库的链接
+```
+HOSTNAME = "127.0.0.1"
+PORT = 3306
+USERNAME = "root"
+PASSWORD ="msyhs233"
+DATABASE = "flask_project"
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}'
+
+db = SQLAlchemy(app)
+
+# 检查数据库是否连接成果
+with app.app_context():
+    with db.engine.connect() as conn:
+        rs = conn.execute(text("SELECT 1"))
+        print(rs.fetchone())  # (1,)
+```
+
 ### 创建ORM对象
+通过创建ORM模型对象，在数据库中创建一个表
+```
+class User_ORM(db.Model):
+    # 表名
+    __tablename__ = "user"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    
+# 之后将这个表映射到数据库中
+with app.app_context():
+    db.create_all()
+```
 
 
 ### ORM实现增删改查 CRUD
+#### 增
+```
+@app.route('/user/add')
+def add_user():
+    user1 = User_ORM(username="msy", password="msyhs233")
+
+    # 向数据库中添加一个信息
+    db.session.add(user1)
+    db.session.commit()
+
+    return "对象创建成功"
+```
+
+#### 删
+```
+@app.route('/user/delete')
+def delete_user():
+    user = User_ORM.query.get(1)
+    db.session.delete(user)
+    db.session.commit()
+    return "数据删除成功"
+
+```
+
+#### 改
+```
+@app.route('/user/update')
+def update_user():
+    user = User_ORM.query.filter_by(username="msy")[0]
+    user.password = "222222"
+    db.session.commit()
+
+    return "数据修改成功"
+
+```
+
+#### 查
+```
+@app.route('/user/query')
+def query_user():
+    # 有两种查询方式
+    # get: 根据primary key进行查找
+    user = User_ORM.query.get(1)
+    print(user.username)
+    
+    
+    # filter:
+    # 返回的是QuerySet对象
+    users = User_ORM.query.filter_by(username="msy")
+    for user in users:
+        print(user.username)
+
+    return "数据查找成功"
+
+```        
+
+
 
 
 ### ORM实现表关系
+外键实现表的连接
 
 ### 将ORM模型映射到数据库
+```
+# 之后将这个表映射到数据库中
+with app.app_context():
+    db.create_all()
+```
+之前使用的方式, 当一个ORM对象中的特征发生改变时, 对应的数据库中的表不会发生改变, 所以要使flask-migrate
 
 
 
